@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Package, Truck, CheckCircle, Clock, MapPin, Phone, MessageCircle } from "lucide-react";
+import { Package, Truck, CheckCircle, Clock, MapPin, Phone, MessageCircle, ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -242,14 +242,16 @@ const Orders = () => {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">My Orders</h1>
-              <p className="text-primary-foreground/80">
+              <h1 className="text-xl md:text-2xl font-bold">My Orders</h1>
+              <p className="text-primary-foreground/80 text-sm md:text-base">
                 <Phone className="w-4 h-4 inline mr-1" />
                 {userMobile}
               </p>
             </div>
-            <Button variant="secondary" onClick={() => navigate("/")}>
-              Back to Home
+            <Button variant="secondary" onClick={() => navigate("/")} size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2 md:hidden" />
+              <span className="hidden md:inline">Back to Home</span>
+              <span className="md:hidden">Back</span>
             </Button>
           </div>
         </div>
@@ -257,14 +259,14 @@ const Orders = () => {
 
       <div className="max-w-6xl mx-auto p-4 space-y-6">
         {/* AI Query Section */}
-        <Card className="p-6">
+        <Card className="p-4 md:p-6">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-semibold">Ask about your delivery</h2>
+              <h2 className="text-lg md:text-xl font-semibold">Ask about your delivery</h2>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Input
                 placeholder='Ask me "Where is my order?" or "When will it be delivered?"'
                 value={query}
@@ -272,7 +274,7 @@ const Orders = () => {
                 onKeyPress={handleKeyPress}
                 className="flex-1"
               />
-              <Button onClick={handleQuery}>Ask</Button>
+              <Button onClick={handleQuery} className="w-full sm:w-auto">Ask</Button>
             </div>
             
             {response && (
@@ -284,7 +286,7 @@ const Orders = () => {
         </Card>
 
         {/* Orders List */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2">
           {orders.map((order) => (
             <Card key={order.id} className="p-6">
               <div className="space-y-4">

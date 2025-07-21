@@ -15,16 +15,27 @@ export const useFAQMatcher = () => {
 
   useEffect(() => {
     const fetchFAQs = async () => {
+      setLoading(true);
       try {
         const { data, error } = await supabase
           .from('faqs')
           .select('*')
           .order('created_at', { ascending: true });
 
-        if (error) throw error;
+        if (error) {
+          console.error('FAQ fetch error:', error);
+          throw new Error(`Failed to load FAQ data: ${error.message}`);
+        }
+        
+        if (!data || data.length === 0) {
+          console.warn('No FAQ data found in database');
+        }
+        
         setFaqs(data || []);
       } catch (error) {
         console.error('Error fetching FAQs:', error);
+        // Continue with empty FAQs array to prevent app crash
+        setFaqs([]);
       } finally {
         setLoading(false);
       }

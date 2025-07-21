@@ -156,9 +156,18 @@ const Chat = () => {
 
       // Upload files if any
       if (files && files.length > 0) {
-        const uploadResult = await uploadFiles(files);
-        fileUrls = uploadResult.urls;
-        fileNames = uploadResult.names;
+        try {
+          const uploadResult = await uploadFiles(files);
+          fileUrls = uploadResult.urls;
+          fileNames = uploadResult.names;
+        } catch (uploadError) {
+          console.error('File upload error:', uploadError);
+          toast({
+            title: "File Upload Failed",
+            description: "Some files could not be uploaded, but your message will still be sent.",
+            variant: "destructive",
+          });
+        }
       }
 
       // Add user message
@@ -174,10 +183,19 @@ const Chat = () => {
         .select()
         .single();
 
-      if (userError) throw userError;
+      if (userError) {
+        console.error('User message error:', userError);
+        throw new Error('Failed to save your message');
+      }
 
-      // Generate assistant response
-      const assistantResponse = generateResponse(content);
+      // Generate assistant response with error handling
+      let assistantResponse: string;
+      try {
+        assistantResponse = generateResponse(content);
+      } catch (generateError) {
+        console.error('Response generation error:', generateError);
+        assistantResponse = "I'm sorry, I'm having trouble processing your question right now. Please try again or contact support at 1800-123-4567.";
+      }
 
       // Add assistant message
       const { data: assistantMessage, error: assistantError } = await supabase
@@ -190,7 +208,10 @@ const Chat = () => {
         .select()
         .single();
 
-      if (assistantError) throw assistantError;
+      if (assistantError) {
+        console.error('Assistant message error:', assistantError);
+        throw new Error('Failed to get response from assistant');
+      }
 
       // Track the question for this assistant response
       setMessageQuestionMap(prev => ({
@@ -199,22 +220,28 @@ const Chat = () => {
       }));
 
       // Update conversation timestamp
-      await supabase
-        .from('chat_conversations')
-        .update({ 
-          updated_at: new Date().toISOString(),
-          title: content.length > 50 ? content.substring(0, 50) + '...' : content
-        })
-        .eq('id', currentConversation.id);
+      try {
+        await supabase
+          .from('chat_conversations')
+          .update({ 
+            updated_at: new Date().toISOString(),
+            title: content.length > 50 ? content.substring(0, 50) + '...' : content
+          })
+          .eq('id', currentConversation.id);
+      } catch (updateError) {
+        console.error('Conversation update error:', updateError);
+        // Non-critical error, don't throw
+      }
 
       // Reload messages
       await loadMessages(currentConversation.id);
       
     } catch (error) {
       console.error('Error sending message:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
-        title: "Error",
-        description: "Failed to send message",
+        title: "Message Send Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -229,8 +256,27 @@ const Chat = () => {
 
   return (
     <div className="h-screen flex bg-background">
-      {/* Sidebar */}
-      <div className="w-80 border-r border-border flex flex-col">
+      {/* Mobile Header - Hidden on desktop */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-background border-b border-border p-4">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <div className="flex items-center gap-2">
+            <img src={scooterLogo} alt="VoltAssist" className="w-6 h-6" />
+            <span className="font-semibold bg-gradient-electric bg-clip-text text-transparent">
+              Chat
+            </span>
+          </div>
+          <Button size="sm" onClick={createNewConversation}>
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Sidebar - Hidden on mobile */}
+      <div className="hidden md:flex w-80 border-r border-border flex-col">
         {/* Header */}
         <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between mb-4">
@@ -278,11 +324,11 @@ const Chat = () => {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col md:mt-0 mt-16">
         {currentConversation ? (
           <>
-            {/* Chat Header */}
-            <div className="p-4 border-b border-border">
+            {/* Chat Header - Hidden on mobile */}
+            <div className="hidden md:block p-4 border-b border-border">
               <div className="flex items-center justify-between">
                 <h2 className="font-semibold">{currentConversation.title}</h2>
                 <Badge variant="secondary">Electric Scooter Assistant</Badge>

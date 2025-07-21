@@ -59,7 +59,10 @@ export const SupportRequestForm = ({
           status: 'pending'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw new Error(error.message || 'Failed to submit support request');
+      }
 
       toast({
         title: "Request Submitted",
@@ -72,9 +75,10 @@ export const SupportRequestForm = ({
       onClose();
     } catch (error) {
       console.error('Error submitting support request:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: "Submission Failed",
-        description: "Failed to submit your support request. Please try again.",
+        description: `Failed to submit your support request: ${errorMessage}. Please try again.`,
         variant: "destructive",
       });
     } finally {
@@ -84,7 +88,7 @@ export const SupportRequestForm = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[95vw] max-w-md mx-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             Contact Human Support
