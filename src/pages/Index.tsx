@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import scooterLogo from "@/assets/scooter-logo.png";
 
@@ -26,6 +26,14 @@ const Index = () => {
   const handleChat = () => {
     if (userMobile) {
       navigate("/chat");
+    } else {
+      navigate("/login");
+    }
+  };
+
+  const handleOrders = () => {
+    if (userMobile) {
+      navigate("/orders");
     } else {
       navigate("/login");
     }
@@ -75,14 +83,25 @@ const Index = () => {
           <p className="text-lg text-muted-foreground mb-8 animate-fade-in">
             Get instant answers to your electric scooter questions
           </p>
-          <Button 
-            onClick={handleChat} 
-            size="lg" 
-            className="animate-fade-in hover-scale"
-          >
-            <MessageCircle className="w-5 h-5 mr-2" />
-            Start Chat
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in">
+            <Button 
+              onClick={handleChat} 
+              size="lg" 
+              className="hover-scale"
+            >
+              <MessageCircle className="w-5 h-5 mr-2" />
+              Start Chat
+            </Button>
+            <Button 
+              onClick={handleOrders} 
+              size="lg" 
+              variant="outline"
+              className="hover-scale"
+            >
+              <Package className="w-5 h-5 mr-2" />
+              My Orders
+            </Button>
+          </div>
         </div>
       </main>
     </div>
