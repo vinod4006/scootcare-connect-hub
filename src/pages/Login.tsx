@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ const Login = () => {
   const [mobileNumber, setMobileNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   const formatMobileDisplay = (number: string) => {
@@ -90,7 +92,7 @@ const Login = () => {
         });
         
         // Redirect to home page
-        window.location.href = "/";
+        navigate("/");
       } else {
         throw new Error("Invalid OTP");
       }

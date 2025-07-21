@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import scooterLogo from "@/assets/scooter-logo.png";
 
 const Index = () => {
   const [userMobile, setUserMobile] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if user is logged in
@@ -13,7 +15,7 @@ const Index = () => {
   }, []);
 
   const handleLogin = () => {
-    window.location.href = "/login";
+    navigate("/login");
   };
 
   const handleLogout = () => {
@@ -23,9 +25,9 @@ const Index = () => {
 
   const handleChat = () => {
     if (userMobile) {
-      window.location.href = "/chat";
+      navigate("/chat");
     } else {
-      window.location.href = "/login";
+      navigate("/login");
     }
   };
 
