@@ -105,41 +105,90 @@ const getStatusColor = (status: string) => {
 const getDeliveryResponse = (query: string, orders: Order[]): string => {
   const queryLower = query.toLowerCase();
   
-  if (queryLower.includes("where") && (queryLower.includes("order") || queryLower.includes("delivery"))) {
-    const activeOrder = orders.find(order => order.status !== "delivered");
-    if (activeOrder) {
-      if (activeOrder.status === "shipped" || activeOrder.status === "out_for_delivery") {
-        return `Your ${activeOrder.productName} (Order #${activeOrder.orderNumber}) is currently ${activeOrder.currentLocation ? `at ${activeOrder.currentLocation}` : 'in transit'}. Expected delivery: ${new Date(activeOrder.estimatedDelivery).toLocaleDateString('en-IN')}.`;
-      } else {
-        return `Your ${activeOrder.productName} (Order #${activeOrder.orderNumber}) is currently being ${activeOrder.status === 'processing' ? 'prepared' : 'processed'}. Expected delivery: ${new Date(activeOrder.estimatedDelivery).toLocaleDateString('en-IN')}.`;
-      }
+  // Extract mentioned product names and order numbers
+  const mentionedProducts = orders.filter(order => 
+    queryLower.includes(order.productName.toLowerCase()) ||
+    queryLower.includes(order.model.toLowerCase()) ||
+    queryLower.includes(order.orderNumber.toLowerCase()) ||
+    order.productName.toLowerCase().split(' ').some(word => queryLower.includes(word)) ||
+    order.model.toLowerCase().split(' ').some(word => queryLower.includes(word))
+  );
+  
+  // If specific product is mentioned, focus on that order
+  const targetOrder = mentionedProducts.length > 0 ? mentionedProducts[0] : 
+                     orders.find(order => order.status !== "delivered") || orders[0];
+  
+  if (!targetOrder) {
+    return "I couldn't find any orders associated with your account. Please contact support if you believe this is an error.";
+  }
+  
+  // Location and tracking queries
+  if (queryLower.includes("where") || queryLower.includes("location") || queryLower.includes("reached")) {
+    if (targetOrder.status === "delivered") {
+      return `Your ${targetOrder.productName} ${targetOrder.model} (Order #${targetOrder.orderNumber}) was successfully delivered on ${new Date(targetOrder.trackingSteps.find(step => step.status === "Delivered")?.timestamp || targetOrder.estimatedDelivery).toLocaleDateString('en-IN')}.`;
+    } else if (targetOrder.status === "shipped" || targetOrder.status === "out_for_delivery") {
+      return `Your ${targetOrder.productName} ${targetOrder.model} in ${targetOrder.color} (Order #${targetOrder.orderNumber}) is currently ${targetOrder.currentLocation ? `at ${targetOrder.currentLocation}` : 'in transit'}. Expected delivery: ${new Date(targetOrder.estimatedDelivery).toLocaleDateString('en-IN')}.`;
+    } else {
+      return `Your ${targetOrder.productName} ${targetOrder.model} (Order #${targetOrder.orderNumber}) is currently in our ${targetOrder.status === 'processing' ? 'preparation facility' : 'warehouse'} being ${targetOrder.status === 'processing' ? 'prepared for dispatch' : 'processed'}. Expected delivery: ${new Date(targetOrder.estimatedDelivery).toLocaleDateString('en-IN')}.`;
     }
-    return "All your orders have been delivered successfully!";
   }
   
-  if (queryLower.includes("when") && (queryLower.includes("deliver") || queryLower.includes("arrive"))) {
-    const activeOrder = orders.find(order => order.status !== "delivered");
-    if (activeOrder) {
-      return `Your ${activeOrder.productName} is expected to be delivered on ${new Date(activeOrder.estimatedDelivery).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.`;
+  // Delivery time queries
+  if (queryLower.includes("when") || queryLower.includes("deliver") || queryLower.includes("arrive") || queryLower.includes("expect")) {
+    if (targetOrder.status === "delivered") {
+      return `Your ${targetOrder.productName} ${targetOrder.model} was delivered on ${new Date(targetOrder.trackingSteps.find(step => step.status === "Delivered")?.timestamp || targetOrder.estimatedDelivery).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.`;
+    } else {
+      const daysLeft = Math.ceil((new Date(targetOrder.estimatedDelivery).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      return `Your ${targetOrder.productName} ${targetOrder.model} in ${targetOrder.color} is expected to be delivered on ${new Date(targetOrder.estimatedDelivery).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}${daysLeft > 0 ? ` (in ${daysLeft} day${daysLeft > 1 ? 's' : ''})` : ''}.`;
     }
-    return "All your orders have been delivered successfully!";
   }
   
-  if (queryLower.includes("status") || queryLower.includes("track")) {
-    const activeOrder = orders.find(order => order.status !== "delivered");
-    if (activeOrder) {
-      const currentStep = activeOrder.trackingSteps.find(step => !step.completed);
-      const nextStep = currentStep ? currentStep.status : "Delivered";
-      return `Your order #${activeOrder.orderNumber} is currently "${activeOrder.status.replace('_', ' ')}" and the next step is "${nextStep}".`;
+  // Status and tracking queries
+  if (queryLower.includes("status") || queryLower.includes("track") || queryLower.includes("progress")) {
+    const completedSteps = targetOrder.trackingSteps.filter(step => step.completed).length;
+    const currentStep = targetOrder.trackingSteps.find(step => !step.completed);
+    const nextStep = currentStep ? currentStep.status : "Delivered";
+    
+    if (targetOrder.status === "delivered") {
+      return `Your ${targetOrder.productName} ${targetOrder.model} (Order #${targetOrder.orderNumber}) has been successfully delivered! All ${targetOrder.trackingSteps.length} tracking steps completed.`;
+    } else {
+      return `Your ${targetOrder.productName} ${targetOrder.model} (Order #${targetOrder.orderNumber}) is currently "${targetOrder.status.replace('_', ' ')}" (Step ${completedSteps}/${targetOrder.trackingSteps.length}). Next step: "${nextStep}". ${targetOrder.currentLocation ? `Currently at: ${targetOrder.currentLocation}.` : ''}`;
     }
-    return "All your orders have been delivered successfully!";
   }
   
-  if (queryLower.includes("cancel") || queryLower.includes("modify")) {
-    return "For order cancellations or modifications, please contact our customer support at 1800-123-4567 or visit your nearest showroom.";
+  // Product-specific information queries
+  if (queryLower.includes("color") || queryLower.includes("model") || queryLower.includes("variant")) {
+    return `Your order includes the ${targetOrder.productName} ${targetOrder.model} in ${targetOrder.color} color (Order #${targetOrder.orderNumber}). Purchase price: ₹${targetOrder.price.toLocaleString('en-IN')}. Current status: ${targetOrder.status.replace('_', ' ')}.`;
   }
   
-  return `I can help you track your electric scooter orders. Try asking "Where is my order?", "When will it be delivered?", or "What's my order status?". For other inquiries, contact support at 1800-123-4567.`;
+  // Price and payment queries
+  if (queryLower.includes("price") || queryLower.includes("cost") || queryLower.includes("amount") || queryLower.includes("paid")) {
+    return `Your ${targetOrder.productName} ${targetOrder.model} (Order #${targetOrder.orderNumber}) was purchased for ₹${targetOrder.price.toLocaleString('en-IN')}. Order placed on ${new Date(targetOrder.orderDate).toLocaleDateString('en-IN')}.`;
+  }
+  
+  // Cancellation and modification queries
+  if (queryLower.includes("cancel") || queryLower.includes("modify") || queryLower.includes("change")) {
+    if (targetOrder.status === "delivered") {
+      return `Your ${targetOrder.productName} has already been delivered. For returns or exchanges, please contact customer support at 1800-123-4567 within 7 days of delivery.`;
+    } else if (targetOrder.status === "shipped" || targetOrder.status === "out_for_delivery") {
+      return `Your ${targetOrder.productName} ${targetOrder.model} (Order #${targetOrder.orderNumber}) is already shipped and cannot be cancelled. For delivery changes, contact support at 1800-123-4567.`;
+    } else {
+      return `Your ${targetOrder.productName} ${targetOrder.model} (Order #${targetOrder.orderNumber}) may still be cancellable as it's in "${targetOrder.status}" status. Please contact customer support immediately at 1800-123-4567.`;
+    }
+  }
+  
+  // Warranty and service queries
+  if (queryLower.includes("warranty") || queryLower.includes("service") || queryLower.includes("support")) {
+    return `Your ${targetOrder.productName} ${targetOrder.model} comes with manufacturer warranty. For service support, contact customer care at 1800-123-4567 or visit your nearest authorized service center.`;
+  }
+  
+  // Default response with order summary
+  if (orders.length === 1) {
+    return `You have one order: ${targetOrder.productName} ${targetOrder.model} in ${targetOrder.color} (Order #${targetOrder.orderNumber}), currently "${targetOrder.status.replace('_', ' ')}". Ask me "where is my order?", "when will it deliver?", or "what's the status?" for specific details.`;
+  } else {
+    const activeOrders = orders.filter(order => order.status !== "delivered");
+    return `You have ${orders.length} total orders${activeOrders.length > 0 ? `, ${activeOrders.length} active` : ', all delivered'}. Ask me about specific products like "Where is my ${targetOrder.productName}?" or "When will my Ather deliver?" for detailed information.`;
+  }
 };
 
 const Orders = () => {
