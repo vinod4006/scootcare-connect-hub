@@ -145,8 +145,8 @@ export const useFAQMatcher = () => {
       // Apply relevance factor to final score
       const finalScore = relevanceScore > 2 ? score * (relevanceScore / 5) : 0;
 
-      // Higher threshold and require good relevance
-      if (finalScore > highestScore && finalScore >= 8 && relevanceScore >= 3) {
+      // Much higher threshold to ensure only very relevant FAQs are matched
+      if (finalScore > highestScore && finalScore >= 15 && relevanceScore >= 4) {
         highestScore = finalScore;
         bestMatch = faq;
       }
@@ -204,19 +204,27 @@ To track your order, I can help in two ways:
       }
     }
     
-    // Try FAQ matching for non-order queries
-    const bestMatch = findBestMatch(userMessage);
+    // Check if this is a technical/comparison question that should go to AI first
+    const aiFirstKeywords = ['difference', 'compare', 'vs', 'versus', 'performance', 'which is better', 'pros and cons', 'advantages', 'disadvantages', 'mileage difference', 'range comparison', 'speed comparison', 'should i buy', 'recommend'];
+    const shouldUseAIFirst = aiFirstKeywords.some(keyword => messageLower.includes(keyword));
     
-    if (bestMatch && bestMatch.question) {
+    let bestMatch = null;
+    if (!shouldUseAIFirst) {
+      // Try FAQ matching for simple queries
+      bestMatch = findBestMatch(userMessage);
+    }
+    
+    // If we have a very specific FAQ match and it's not a complex question, use it
+    if (bestMatch && bestMatch.question && !shouldUseAIFirst) {
       return `${bestMatch.answer}\n\n*This answer is based on our FAQ: "${bestMatch.question}"*`;
     }
 
-    // If no good FAQ match, try Gemini AI
+    // Use Gemini AI for complex/comparison questions or when no good FAQ match
     try {
       const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: { 
           message: userMessage,
-          context: 'User is asking about electric scooters. Provide helpful information specific to the Indian market.'
+          context: `User is asking: "${userMessage}". Provide a detailed, specific answer about electric scooters in the Indian context. If it's a comparison question, provide clear differences with specific examples, models, and numbers. If it's about performance/mileage, give specific ranges and real-world figures. Be comprehensive but concise.`
         }
       });
 
