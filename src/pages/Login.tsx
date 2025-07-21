@@ -91,8 +91,17 @@ const Login = () => {
           description: "You have been logged in successfully",
         });
         
-        // Redirect to home page
-        navigate("/");
+        // Check if there's a stored redirect destination
+        const redirectPath = sessionStorage.getItem("redirectAfterLogin");
+        if (redirectPath) {
+          // Clear the stored redirect path
+          sessionStorage.removeItem("redirectAfterLogin");
+          // Redirect to the intended destination
+          navigate(redirectPath);
+        } else {
+          // Default redirect to home page
+          navigate("/");
+        }
       } else {
         throw new Error("Invalid OTP");
       }

@@ -27,6 +27,8 @@ const Index = () => {
     if (userMobile) {
       navigate("/chat");
     } else {
+      // Store intended destination before redirecting to login
+      sessionStorage.setItem("redirectAfterLogin", "/chat");
       navigate("/login");
     }
   };
@@ -35,6 +37,8 @@ const Index = () => {
     if (userMobile) {
       navigate("/orders");
     } else {
+      // Store intended destination before redirecting to login
+      sessionStorage.setItem("redirectAfterLogin", "/orders");
       navigate("/login");
     }
   };
