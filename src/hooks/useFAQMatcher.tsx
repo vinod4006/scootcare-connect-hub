@@ -153,14 +153,36 @@ export const useFAQMatcher = () => {
     return bestMatch;
   };
 
-  const generateResponse = (userMessage: string): string => {
+  const generateResponse = async (userMessage: string): Promise<string> => {
+    // First try to find a good FAQ match
     const bestMatch = findBestMatch(userMessage);
     
-    if (bestMatch) {
+    if (bestMatch && bestMatch.question) {
       return `${bestMatch.answer}\n\n*This answer is based on our FAQ: "${bestMatch.question}"*`;
     }
 
-    // Fallback response
+    // If no good FAQ match, try Gemini AI
+    try {
+      const { data, error } = await supabase.functions.invoke('gemini-chat', {
+        body: { 
+          message: userMessage,
+          context: 'User is asking about electric scooters. Provide helpful information specific to the Indian market.'
+        }
+      });
+
+      if (error) {
+        console.error('Gemini API error:', error);
+        throw new Error('AI service temporarily unavailable');
+      }
+
+      if (data?.response) {
+        return `${data.response}\n\n*This response is powered by AI. If you need more specific information, please contact our support team at 1800-123-4567.*`;
+      }
+    } catch (error) {
+      console.error('Error calling Gemini:', error);
+    }
+
+    // Fallback response if both FAQ and Gemini fail
     return `I'd be happy to help you with your electric scooter question! While I don't have a specific answer for "${userMessage}" in my current knowledge base, here are some general tips:
 
 • Check our FAQ sections for common questions about battery, charging, maintenance, and safety
