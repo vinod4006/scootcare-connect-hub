@@ -187,6 +187,11 @@ const Login = () => {
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
+                <div className="text-center mt-2">
+                  <p className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950 p-2 rounded-md border border-blue-200 dark:border-blue-800">
+                    💡 <strong>Testing Note:</strong> Use any 6 digit number as OTP (e.g., 123456)
+                  </p>
+                </div>
               </div>
               <div className="space-y-2">
                 <Button 
