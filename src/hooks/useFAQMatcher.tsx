@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useOrderTracking } from "./useOrderTracking";
 
 interface FAQ {
   id: string;
@@ -12,6 +13,7 @@ interface FAQ {
 export const useFAQMatcher = () => {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
+  const { findOrderByMobile, findOrderByNumber, formatMultipleOrdersMessage, getOrderStatusMessage } = useOrderTracking();
 
   useEffect(() => {
     const fetchFAQs = async () => {
@@ -153,8 +155,56 @@ export const useFAQMatcher = () => {
     return bestMatch;
   };
 
-  const generateResponse = async (userMessage: string): Promise<string> => {
-    // First try to find a good FAQ match
+  const generateResponse = async (userMessage: string, userMobile?: string): Promise<string> => {
+    const messageLower = userMessage.toLowerCase().trim();
+    
+    // Check for order tracking queries first
+    const orderTrackingKeywords = ['order status', 'track order', 'where is my order', 'where is my scooter', 'delivery status', 'order number', 'tracking', 'delivery'];
+    const isOrderTrackingQuery = orderTrackingKeywords.some(keyword => messageLower.includes(keyword));
+    
+    // Extract order number from message (format: ES240XXX)
+    const orderNumberMatch = userMessage.match(/ES240\d{3}/i);
+    
+    if (isOrderTrackingQuery || orderNumberMatch) {
+      try {
+        if (orderNumberMatch) {
+          // User provided specific order number
+          const orderNumber = orderNumberMatch[0].toUpperCase();
+          const order = await findOrderByNumber(orderNumber);
+          
+          if (order) {
+            return getOrderStatusMessage(order);
+          } else {
+            return `❌ **Order not found** with number ${orderNumber}. Please check:
+            
+• Make sure the order number is correct (format: ES240XXX)
+• Try using the mobile number you used while placing the order
+• Contact us at 1800-123-4567 if you need assistance
+
+*You can also ask me "Where is my order?" with your mobile number.*`;
+          }
+        } else if (userMobile) {
+          // User asking about orders with mobile number
+          const orders = await findOrderByMobile(userMobile);
+          return formatMultipleOrdersMessage(orders);
+        } else {
+          // Order tracking query but no mobile/order number provided
+          return `📋 **Order Tracking Help**
+
+To track your order, I can help in two ways:
+
+1. **By Order Number**: Tell me "Track order ES240XXX" with your specific order number
+2. **By Mobile Number**: Since you're messaging from a registered number, I can look up all your orders
+
+*Which option would you prefer? Or provide your order number directly.*`;
+        }
+      } catch (error) {
+        console.error('Order tracking error:', error);
+        return `⚠️ **Order tracking temporarily unavailable**. Please contact our support team at 1800-123-4567 for immediate assistance with order status updates.`;
+      }
+    }
+    
+    // Try FAQ matching for non-order queries
     const bestMatch = findBestMatch(userMessage);
     
     if (bestMatch && bestMatch.question) {
@@ -188,6 +238,7 @@ export const useFAQMatcher = () => {
 • Check our FAQ sections for common questions about battery, charging, maintenance, and safety
 • For technical issues, ensure your scooter is charged and all connections are secure
 • For warranty or specific model questions, please contact our support team
+• To track your order, ask me "Where is my order?" or "Track order ES240XXX"
 
 Is there anything specific about electric scooters I can help you with? I have information about range, charging, speed, maintenance, safety gear, and more!`;
   };

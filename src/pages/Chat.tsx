@@ -191,7 +191,7 @@ const Chat = () => {
       // Generate assistant response with error handling
       let assistantResponse: string;
       try {
-        assistantResponse = await generateResponse(content);
+        assistantResponse = await generateResponse(content, userMobile || undefined);
       } catch (generateError) {
         console.error('Response generation error:', generateError);
         assistantResponse = "I'm sorry, I'm having trouble processing your question right now. Please try again or contact support at 1800-123-4567.";
