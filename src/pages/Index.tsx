@@ -11,9 +11,9 @@ const Index = () => {
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src={scooterLogo} alt="ScootCare" className="w-8 h-8" />
+              <img src={scooterLogo} alt="VoltAssist" className="w-8 h-8" />
               <span className="text-xl font-bold bg-gradient-electric bg-clip-text text-transparent">
-                ScootCare Support
+                VoltAssist
               </span>
             </div>
             <Button variant="outline" size="sm" className="md:hidden">
@@ -34,7 +34,7 @@ const Index = () => {
             
             <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in">
               <span className="bg-gradient-electric bg-clip-text text-transparent">
-                ScootCare
+                VoltAssist
               </span>
               <br />
               <span className="text-foreground">Support Center</span>
@@ -115,8 +115,8 @@ const Index = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src={scooterLogo} alt="ScootCare" className="w-6 h-6" />
-              <span className="text-muted-foreground">© 2024 ScootCare Support</span>
+              <img src={scooterLogo} alt="VoltAssist" className="w-6 h-6" />
+              <span className="text-muted-foreground">© 2024 VoltAssist</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <a href="#" className="hover:text-primary transition-colors">Privacy</a>
