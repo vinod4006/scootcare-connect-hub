@@ -33,6 +33,7 @@ const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [userMobile, setUserMobile] = useState<string | null>(null);
+  const [messageQuestionMap, setMessageQuestionMap] = useState<Record<string, string>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -191,6 +192,12 @@ const Chat = () => {
 
       if (assistantError) throw assistantError;
 
+      // Track the question for this assistant response
+      setMessageQuestionMap(prev => ({
+        ...prev,
+        [assistantMessage.id]: content
+      }));
+
       // Update conversation timestamp
       await supabase
         .from('chat_conversations')
@@ -304,6 +311,9 @@ const Chat = () => {
                     fileUrls={message.file_urls || undefined}
                     fileNames={message.file_names || undefined}
                     createdAt={message.created_at}
+                    userMobile={userMobile || undefined}
+                    conversationId={currentConversation?.id}
+                    originalQuestion={message.message_type === 'assistant' ? messageQuestionMap[message.id] : undefined}
                   />
                 ))}
                 <div ref={messagesEndRef} />

@@ -124,6 +124,63 @@ export type Database = {
         }
         Relationships: []
       }
+      support_requests: {
+        Row: {
+          chatbot_response: string
+          conversation_id: string | null
+          created_at: string
+          id: string
+          message_id: string | null
+          original_question: string
+          status: string
+          support_query: string
+          updated_at: string
+          user_feedback: string | null
+          user_mobile: string
+        }
+        Insert: {
+          chatbot_response: string
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          original_question: string
+          status?: string
+          support_query: string
+          updated_at?: string
+          user_feedback?: string | null
+          user_mobile: string
+        }
+        Update: {
+          chatbot_response?: string
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          original_question?: string
+          status?: string
+          support_query?: string
+          updated_at?: string
+          user_feedback?: string | null
+          user_mobile?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_requests_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_requests_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

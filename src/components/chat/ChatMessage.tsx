@@ -1,6 +1,9 @@
-import { Bot, User, FileText, Image } from "lucide-react";
+import { useState } from "react";
+import { Bot, User, FileText, Image, ThumbsDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { SupportRequestForm } from "./SupportRequestForm";
 
 interface ChatMessageProps {
   id: string;
@@ -9,9 +12,23 @@ interface ChatMessageProps {
   fileUrls?: string[];
   fileNames?: string[];
   createdAt: string;
+  userMobile?: string;
+  conversationId?: string;
+  originalQuestion?: string;
 }
 
-const ChatMessage = ({ messageType, content, fileUrls, fileNames, createdAt }: ChatMessageProps) => {
+const ChatMessage = ({ 
+  id, 
+  messageType, 
+  content, 
+  fileUrls, 
+  fileNames, 
+  createdAt, 
+  userMobile, 
+  conversationId, 
+  originalQuestion 
+}: ChatMessageProps) => {
+  const [showSupportForm, setShowSupportForm] = useState(false);
   const isUser = messageType === "user";
   
   const getFileIcon = (fileName: string) => {
@@ -67,11 +84,37 @@ const ChatMessage = ({ messageType, content, fileUrls, fileNames, createdAt }: C
             </div>
           )}
           
-          <p className={`text-xs opacity-70 ${isUser ? 'text-right' : 'text-left'}`}>
-            {new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </p>
+          <div className={`flex items-center justify-between ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+            <p className={`text-xs opacity-70`}>
+              {new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </p>
+            
+            {!isUser && userMobile && conversationId && originalQuestion && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSupportForm(true)}
+                className="opacity-70 hover:opacity-100 h-6 px-2 text-xs"
+              >
+                <ThumbsDown className="w-3 h-3 mr-1" />
+                Not helpful?
+              </Button>
+            )}
+          </div>
         </div>
       </Card>
+      
+      {!isUser && showSupportForm && userMobile && conversationId && originalQuestion && (
+        <SupportRequestForm
+          isOpen={showSupportForm}
+          onClose={() => setShowSupportForm(false)}
+          userMobile={userMobile}
+          conversationId={conversationId}
+          messageId={id}
+          originalQuestion={originalQuestion}
+          chatbotResponse={content}
+        />
+      )}
     </div>
   );
 };
