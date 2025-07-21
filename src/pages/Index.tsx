@@ -1,17 +1,52 @@
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import scooterLogo from "@/assets/scooter-logo.png";
 
 const Index = () => {
+  const [userMobile, setUserMobile] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check if user is logged in
+    const mobile = sessionStorage.getItem("userMobile");
+    setUserMobile(mobile);
+  }, []);
+
+  const handleLogin = () => {
+    window.location.href = "/login";
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("userMobile");
+    setUserMobile(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* Header */}
       <header className="bg-card/80 backdrop-blur-sm border-b border-border/50">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img src={scooterLogo} alt="VoltAssist" className="w-8 h-8" />
               <span className="text-xl font-bold bg-gradient-electric bg-clip-text text-transparent">
                 VoltAssist
               </span>
+            </div>
+            <div className="flex items-center gap-3">
+              {userMobile ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-muted-foreground">
+                    {userMobile}
+                  </span>
+                  <Button variant="outline" size="sm" onClick={handleLogout}>
+                    Logout
+                  </Button>
+                </div>
+              ) : (
+                <Button variant="outline" size="sm" onClick={handleLogin}>
+                  Login
+                </Button>
+              )}
             </div>
           </div>
         </div>
