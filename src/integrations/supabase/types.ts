@@ -103,6 +103,69 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          actual_delivery_date: string | null
+          courier_partner: string | null
+          created_at: string
+          customer_email: string | null
+          customer_mobile: string
+          customer_name: string
+          delivery_address: Json
+          estimated_delivery_date: string | null
+          id: string
+          order_amount: number
+          order_number: string
+          order_status: string
+          payment_status: string
+          scooter_color: string | null
+          scooter_model: string
+          special_instructions: string | null
+          tracking_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_delivery_date?: string | null
+          courier_partner?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_mobile: string
+          customer_name: string
+          delivery_address: Json
+          estimated_delivery_date?: string | null
+          id?: string
+          order_amount: number
+          order_number: string
+          order_status?: string
+          payment_status?: string
+          scooter_color?: string | null
+          scooter_model: string
+          special_instructions?: string | null
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_delivery_date?: string | null
+          courier_partner?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_mobile?: string
+          customer_name?: string
+          delivery_address?: Json
+          estimated_delivery_date?: string | null
+          id?: string
+          order_amount?: number
+          order_number?: string
+          order_status?: string
+          payment_status?: string
+          scooter_color?: string | null
+          scooter_model?: string
+          special_instructions?: string | null
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
