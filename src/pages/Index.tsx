@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import scooterLogo from "@/assets/scooter-logo.png";
 
@@ -18,6 +19,14 @@ const Index = () => {
   const handleLogout = () => {
     sessionStorage.removeItem("userMobile");
     setUserMobile(null);
+  };
+
+  const handleChat = () => {
+    if (userMobile) {
+      window.location.href = "/chat";
+    } else {
+      window.location.href = "/login";
+    }
   };
 
   return (
@@ -61,6 +70,17 @@ const Index = () => {
               VoltAssist
             </span>
           </h1>
+          <p className="text-lg text-muted-foreground mb-8 animate-fade-in">
+            Get instant answers to your electric scooter questions
+          </p>
+          <Button 
+            onClick={handleChat} 
+            size="lg" 
+            className="animate-fade-in hover-scale"
+          >
+            <MessageCircle className="w-5 h-5 mr-2" />
+            Start Chat
+          </Button>
         </div>
       </main>
     </div>
